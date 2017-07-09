@@ -15,6 +15,7 @@ games$Date <- as.Date(games$Date)
 gamedays <- unique(games$Date)
 currentDay <- gamedays[1]
 
+#update teams matrix with information from game day
 tallyScores <- function(currentDay) {
   resultsToday <- subset(games, games$Date == currentDay)
   for (game in 1:dim(resultsToday)[1]) {
@@ -39,8 +40,29 @@ tallyScores <- function(currentDay) {
   }
 }
 
+#advance the game date
 advanceDay <- function() {
   gamesToday <- games[which(games$Date == currentDay)]
   
   currentDay <- gamedays[which(gamedays == currentDay)+1]
+}
+
+#conferences
+East <- as.vector(subset(teams$Team_Name,teams$Conference_id=="East"))
+West <- as.vector(subset(teams$Team_Name,teams$Conference_id=="West"))
+#divisions
+Atlantic <- as.vector(subset(teams$Team_Name,teams$Division_id=="Atlantic"))
+Central <- as.vector(subset(teams$Team_Name,teams$Division_id=="Central"))
+Southeast <- as.vector(subset(teams$Team_Name,teams$Division_id=="Southeast"))
+Northwest <- as.vector(subset(teams$Team_Name,teams$Division_id=="NOrthwest"))
+Pacific <- as.vector(subset(teams$Team_Name,teams$Division_id=="Pacific"))
+Southwest <- as.vector(subset(teams$Team_Name,teams$Division_id=="Southwest"))
+
+#test teamName
+teamName <- teams$Team_Name[13]
+
+#simulate season in a best case scenario for team in question
+bestCase <- function(teamName) {
+  simSeason <- subset(games,games$Date > currentDay)
+  
 }
