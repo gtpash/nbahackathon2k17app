@@ -70,6 +70,8 @@ teamName <- teams$Team_Name[13]
 # winner for games in same division is the team with the worse record of the pair... (this will be tricky)
 # can't rule a team out on pt differential
 
+#want to store each bestcase scenario in a giant list for the teams
+
 #initial simulation of best case scenario for a team (IN PROGRESS)
 generateBestCase <- function(teamName) {
   teamconf <- teams$Conference_id[which(teams$Team_Name == teamName)]
