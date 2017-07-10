@@ -48,21 +48,46 @@ advanceDay <- function() {
 }
 
 #conferences
-East <- as.vector(subset(teams$Team_Name,teams$Conference_id=="East"))
-West <- as.vector(subset(teams$Team_Name,teams$Conference_id=="West"))
+confs <- list("East" = as.vector(subset(teams$Team_Name,teams$Conference_id=="East")),
+     "West" = as.vector(subset(teams$Team_Name,teams$Conference_id=="West")))
+
 #divisions
-Atlantic <- as.vector(subset(teams$Team_Name,teams$Division_id=="Atlantic"))
-Central <- as.vector(subset(teams$Team_Name,teams$Division_id=="Central"))
-Southeast <- as.vector(subset(teams$Team_Name,teams$Division_id=="Southeast"))
-Northwest <- as.vector(subset(teams$Team_Name,teams$Division_id=="NOrthwest"))
-Pacific <- as.vector(subset(teams$Team_Name,teams$Division_id=="Pacific"))
-Southwest <- as.vector(subset(teams$Team_Name,teams$Division_id=="Southwest"))
+divisions <- list("Atlantic" = as.vector(subset(teams$Team_Name,teams$Division_id=="Atlantic")),
+                  "Central" = as.vector(subset(teams$Team_Name,teams$Division_id=="Central")), 
+                  "Southeast" = as.vector(subset(teams$Team_Name,teams$Division_id=="Southeast")),
+                  "Northwest" = as.vector(subset(teams$Team_Name,teams$Division_id=="NOrthwest")),
+                  "Pacific" = as.vector(subset(teams$Team_Name,teams$Division_id=="Pacific")),
+                  "Southwest" = as.vector(subset(teams$Team_Name,teams$Division_id=="Southwest")))
 
 #test teamName
 teamName <- teams$Team_Name[13]
 
-#simulate season in a best case scenario for team in question
-bestCase <- function(teamName) {
-  simSeason <- subset(games,games$Date > currentDay)
+#We probs want to initialize a best case scenario for each team and then update that with what changes
+#   due to how actual results play out... but we always know that they want to
+# win out
+# have everyone in their conference lose to the other conference
+# have everyone in their division lose to teams outside of it
+# winner for games in same division is the team with the worse record of the pair... (this will be tricky)
+# can't rule a team out on pt differential
+
+#initial simulation of best case scenario for a team (IN PROGRESS)
+generateBestCase <- function(teamName) {
+  teamconf <- teams$Conference_id[which(teams$Team_Name == teamName)]
+  #subset the games where a team in the same conference is playing
+  simSeason <- subset(games,(games$Date > currentDay) & (games$`Home Team` %in% get(teamconf) | 
+                                                           games$`Away Team` %in% get(teamconf)))
+  #current team wins out
+  simSeason$Winner[which(simSeason$`Home Team` == teamName | simSeason$`Away Team` == teamName)] <- teamName
+  
+  #games b/w conferences
+  eastvwest <- which((simSeason$`Home Team` %in% East & simSeason$`Away Team` %in% West) | 
+                       (simSeason$`Home Team` %in% West & simSeason$`Away Team` %in% East))
+  
+  #team conference loses out to the other conference
+  simSeason$Winner[eastvwest[which(simSeason$`Home Team`[eastvwest] %in% get(teamconf))]] <- 
+    simSeason$`Away Team`[eastvwest[which(simSeason$`Home Team`[eastvwest] %in% get(teamconf))]]
+
+  simSeason$Winner[eastvwest[which(simSeason$`Away Team`[eastvwest] %in% get(teamconf))]] <- 
+    simSeason$`Home Team`[eastvwest[which(simSeason$`Away Team`[eastvwest] %in% get(teamconf))]]  
   
 }
