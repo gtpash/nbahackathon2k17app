@@ -8,6 +8,10 @@ teams <- read_xlsx("Analytics_Attachment.xlsx", sheet = 1)
 teams$wins <- 0
 teams$losses <- 0
 teams$ptdiff <- 0
+teams$cwins <- 0
+teams$closses <- 0
+teams$dwins <- 0
+teams$dlosses <- 0
 
 #pull in game information
 games <- read_xlsx("Analytics_Attachment.xlsx", sheet = 2)
@@ -15,7 +19,7 @@ games$Date <- as.Date(games$Date)
 gamedays <- unique(games$Date)
 currentDay <- gamedays[1]
 
-#update teams matrix with information from game day
+#update teams matrix with information from game day (need to update with cwins/closses/dwins/dlosses)
 tallyScores <- function(currentDay) {
   resultsToday <- subset(games, games$Date == currentDay)
   for (game in 1:dim(resultsToday)[1]) {
@@ -75,21 +79,38 @@ teamName <- teams$Team_Name[13]
 #initial simulation of best case scenario for a team (IN PROGRESS)
 generateBestCase <- function(teamName) {
   teamconf <- teams$Conference_id[which(teams$Team_Name == teamName)]
+  
   #subset the games where a team in the same conference is playing
-  simSeason <- subset(games,(games$Date > currentDay) & (games$`Home Team` %in% get(teamconf) | 
-                                                           games$`Away Team` %in% get(teamconf)))
+  if (teamconf == "East") {
+    simSeason <- subset(games,(games$Date > currentDay) & (games$`Home Team` %in% confs$East | 
+                                                             games$`Away Team` %in% confs$East))
+  } else {
+    simSeason <- subset(games,(games$Date > currentDay) & (games$`Home Team` %in% confs$West | 
+                                                             games$`Away Team` %in% confs$West))
+  }
+
   #current team wins out
   simSeason$Winner[which(simSeason$`Home Team` == teamName | simSeason$`Away Team` == teamName)] <- teamName
   
   #games b/w conferences
-  eastvwest <- which((simSeason$`Home Team` %in% East & simSeason$`Away Team` %in% West) | 
-                       (simSeason$`Home Team` %in% West & simSeason$`Away Team` %in% East))
+  outconfs <- which((simSeason$`Home Team` %in% confs$East & simSeason$`Away Team` %in% confs$West) | 
+                       (simSeason$`Home Team` %in% confs$West & simSeason$`Away Team` %in% confs$East))
   
   #team conference loses out to the other conference
-  simSeason$Winner[eastvwest[which(simSeason$`Home Team`[eastvwest] %in% get(teamconf))]] <- 
-    simSeason$`Away Team`[eastvwest[which(simSeason$`Home Team`[eastvwest] %in% get(teamconf))]]
-
-  simSeason$Winner[eastvwest[which(simSeason$`Away Team`[eastvwest] %in% get(teamconf))]] <- 
-    simSeason$`Home Team`[eastvwest[which(simSeason$`Away Team`[eastvwest] %in% get(teamconf))]]  
+  if (teamconf == "East") {
+    simSeason$Winner[outconfs[which(simSeason$`Home Team`[outconfs] %in% confs$East)]] <- 
+      simSeason$`Away Team`[outconfs[which(simSeason$`Home Team`[outconfs] %in% confs$East)]]
+    
+    simSeason$Winner[outconfs[which(simSeason$`Away Team`[outconfs] %in% confs$East)]] <- 
+      simSeason$`Home Team`[outconfs[which(simSeason$`Away Team`[outconfs] %in% confs$East)]]
+  } else {
+    simSeason$Winner[outconfs[which(simSeason$`Home Team`[outconfs] %in% confs$West)]] <- 
+      simSeason$`Away Team`[outconfs[which(simSeason$`Home Team`[outconfs] %in% confs$West)]]
+    
+    simSeason$Winner[outconfs[which(simSeason$`Away Team`[outconfs] %in% confs$West)]] <- 
+      simSeason$`Home Team`[outconfs[which(simSeason$`Away Team`[outconfs] %in% confs$West)]]
+  }
+  
+  
   
 }
