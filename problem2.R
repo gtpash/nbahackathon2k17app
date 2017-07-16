@@ -111,6 +111,10 @@ generateBestCase <- function(teamName) {
       simSeason$`Home Team`[outconfs[which(simSeason$`Away Team`[outconfs] %in% confs$West)]]
   }
   
-  
+  #teams in your conference lose to other divisions
+  outofdivision <- 
+  simSeason$Winner
+    
   
 }
+
