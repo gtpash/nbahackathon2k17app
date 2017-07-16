@@ -120,6 +120,14 @@ generateBestCase <- function(teamName) {
 
 checkPlayoffTeams <- function(teams, teamName, teamConf, teamDiv) {
   
-  teams_copy <- teams %>% filter(Conference_id == teamConf) %>% arrange(desc(wins),desc(dwins),desc(cwins))
-
+  teamsCopy <- teams %>% filter(Conference_id == teamConf) %>% arrange(desc(wins),desc(dwins),desc(cwins))
+  cutoff <- teamsCopy[8,4]
+  teamsCopy %>% filter(wins >= cutoff) -> teamsCopy
+  if (nrow(teamsCopy) == 8){
+    playoffTeams <- teamsCopy$Team_Name
+  }
+  if (nrow(teamsCopy) == 9){
+    
+  }
+  
 }
