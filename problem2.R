@@ -1,7 +1,11 @@
 #remember to set your working directory & install the "readxl" package
 
 #install.packages("readxl")
+#install.packages("magrittr")
+#install.packages("dplyr")
 require(readxl)
+require(magrittr)
+require(dplyr)
 
 #initialize data frame to hold team information
 teams <- read_xlsx("Analytics_Attachment.xlsx", sheet = 1)
@@ -112,5 +116,11 @@ generateBestCase <- function(teamName) {
   }
   
   
+  
+}
+
+checkPlayoffTeams <- function(teams) {
+  
+  teams %>% arrange(Conference_id, desc(wins), desc(dwins), desc(cwins))
   
 }
