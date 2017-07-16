@@ -122,8 +122,8 @@ generateBestCase <- function(teamName) {
   
 }
 
-checkPlayoffTeams <- function(teams) {
+checkPlayoffTeams <- function(teams, teamName, teamConf, teamDiv) {
   
-  teams %>% arrange(Conference_id, desc(wins), desc(dwins), desc(cwins))
-  
+  teams_copy <- teams %>% filter(Conference_id == teamConf) %>% arrange(desc(wins),desc(dwins),desc(cwins))
+
 }
