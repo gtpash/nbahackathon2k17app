@@ -1,9 +1,9 @@
 #remember to set your working directory & install the "readxl" package
 
 #install.packages(c("readxl","magrittr","dplyr")
-require(readxl)
-require(magrittr)
-require(dplyr)
+library(readxl)
+library(magrittr)
+library(dplyr)
 
 #initialize data frame to hold team information
 teams <- read_xlsx("Analytics_Attachment.xlsx", sheet = 1)
@@ -22,7 +22,7 @@ gamedays <- unique(games$Date)
 currentDay <- gamedays[1]
 
 eliminations <- read_xlsx("Analytics_Attachment.xlsx",sheet=3)
-eliminations$`Date Eliminated` = ""
+eliminations$`Date Eliminated` = "Playoffs"
 
 #update teams matrix with information from game day (need to update with cwins/closses/dwins/dlosses)
 tallyScores <- function(currentDay) {
@@ -112,7 +112,7 @@ generateBestCase <- function(teamName) {
   #current team wins out
   simSeason$Winner[which(simSeason$`Home Team` == teamName | simSeason$`Away Team` == teamName)] <- teamName
   
-  #games b/w teams in other conferences
+  #games b/w teams in other divisions that are in you
   othergames <- which(simSeason$Winner == "Home" | simSeason$Winner == "Away")
   
   
