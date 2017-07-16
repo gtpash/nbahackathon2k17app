@@ -118,7 +118,7 @@ generateBestCase <- function(teamName) {
   
 }
 
-checkPlayoffTeams <- function(teams, teamName, teamConf, teamDiv) {
+checkPlayoffTeams <- function(teams, teamName, teamConf, teamDiv, currentDate) {
   
   teamsCopy <- teams %>% filter(Conference_id == teamConf) %>% arrange(desc(wins),desc(dwins),desc(cwins))
   cutoff <- teamsCopy[8,4]
@@ -127,7 +127,35 @@ checkPlayoffTeams <- function(teams, teamName, teamConf, teamDiv) {
     playoffTeams <- teamsCopy$Team_Name
   }
   if (nrow(teamsCopy) == 9){
-    
+    playoffTeams <- teamsCopy$Team_Name[1:7]
+    c(playoffTeams,twoTeamLogic(teams,teamsCopy[8,]$Team_Name,teamsCopy[9,]$Team_Name, currentDate))
   }
   
+}
+
+twoTeamLogic <- function(teams, team1, team2, currentDate) {
+  team1Wins <- 0
+  team2Wins <- 0  
+  #Criteria 1
+  criteria1 <- games %>% filter(Date <= currentDate,(`Home Team`==team1 & `Away Team`==team2)|(`Home Team`==team2 & `Away Team`==team1))
+  for (i in 1:nrows(criteria1)){
+  if (criteria1[i,]$`Home Team` == team1 & criteria1[i,]$Winner == "Home"){
+    team1Wins <- team1Wins + 1
+  }else if(criteria1[i,]$`Home Team` == team2 & criteria1[i,]$Winner == "Home"){
+    team2Wins <- team2Wins + 1
+  }else if(criteria1[i,]$`Home Team` == team1 & criteria1[i,]$Winner == "Away"){
+    team2Wins <- team2Wins + 1
+  }else{
+    team1Wins <- team1Wins + 1
+  }}
+  if (team1Wins > team2Wins){
+    return(team1)
+  }else if(team1Wins < team2Wins){
+    return(team2)
+  }
+  #Criteria 2
+  criteria2 <- teams %>% group_by(Division_id)
+  
+  
+  return(c(team1, team2))
 }
