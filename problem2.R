@@ -83,6 +83,7 @@ teamName <- teams$Team_Name[13]
 #initial simulation of best case scenario for a team (IN PROGRESS)
 generateBestCase <- function(teamName) {
   teamconf <- teams$Conference_id[which(teams$Team_Name == teamName)]
+  teamdiv <- teams$Division_id[which(teams$Team_Name == teamName)]
   
   #subset the games where a team in the same conference is playing
   if (teamconf == "East") {
@@ -116,7 +117,7 @@ generateBestCase <- function(teamName) {
   }
   
   #teams in your conference lose to other divisions
-  outofdivision <- 
+  outofdivision <- which((simSeason$`Home Team` %in% divisions[[teamdiv]]))
   simSeason$Winner
   
 }
@@ -126,4 +127,3 @@ checkPlayoffTeams <- function(teams) {
   teams %>% arrange(Conference_id, desc(wins), desc(dwins), desc(cwins))
   
 }
->>>>>>> origin/master
