@@ -21,6 +21,13 @@ games$Date <- as.Date(games$Date)
 gamedays <- unique(games$Date)
 currentDay <- gamedays[1]
 
+#set winner to be the team name
+hdex <- which(games$Winner == "Home")
+adex <- which(games$Winner == "Away")
+games$Winner[hdex] <- games$`Home Team`[hdex]
+games$Winner[adex] <- games$`Away Team`[adex]
+rm(adex,hdex)
+
 eliminations <- read_xlsx("Analytics_Attachment.xlsx",sheet=3)
 eliminations$`Date Eliminated` = "Playoffs"
 
@@ -28,7 +35,7 @@ eliminations$`Date Eliminated` = "Playoffs"
 tallyScores <- function(currentDay) {
   resultsToday <- subset(games, games$Date == currentDay)
   for (game in 1:dim(resultsToday)[1]) {
-      if (resultsToday$Winner[game] == "Home") {
+      if (resultsToday$Winner[game] == resultsToday$`Home Team`[game]) {
       winner <- resultsToday$`Home Team`[game]
       loser <- resultsToday$`Away Team`[game]
       spread <- resultsToday$`Home Score`[game] - resultsToday$`Away Score`[game]
