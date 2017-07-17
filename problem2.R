@@ -193,6 +193,7 @@ twoTeamLogic <- function(teams, team1, team2, currentDate, playoffTeams) {
   }
   
   #Criteria 5
+  possibleTeams <- c(playoffTeams,team1,team2)
   
   
   return(c(team1, team2))
