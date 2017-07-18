@@ -170,7 +170,7 @@ twoTeamLogic <- function(teams, team1, team2, currentDate, playoffTeams) {
   #Criteria 1
   criteria1 <- games %>% filter(Date <= currentDate,(`Home Team`==team1 & `Away Team`==team2)|(`Home Team`==team2 & `Away Team`==team1))
   criteria1 <- rbind(criteria1, simSeason %>% filter(Date > currentDate,(`Home Team`==team1 & `Away Team`==team2)|(`Home Team`==team2 & `Away Team`==team1)))
-  for (i in 1:nrows(criteria1)){
+  for (i in 1:nrow(criteria1)){
     if (criteria[i,]$Winner == team1) {
       team1Wins <- team1Wins + 1
     } else {
@@ -293,8 +293,17 @@ threePlusTeamLogic <- function(teams, contentionTeams, currentDate, playoffTeams
   criteria2P <- c()
   for (i in length(contentionTeams)) {
     involved <- criteria2 %>% filter(`Home Team` == contentionTeams[i]|`Away Team` == contentionTeams[i])
-    w <- nrows(involved %>% filter(Winner == contentionTeams[i]))/nrows(involved)
+    w <- nrow(involved %>% filter(Winner == contentionTeams[i]))/nrow(involved)
     criteria2P <- c(criteria2P, w)
+  }
+  listOfLists2 <- list(contentionTeams,criteria2P)
+  c2df <- data.frame(matrix(unlist(listOfLists2), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
+  c2df %>% arrange(decr(X2)) -> c2df
+  c2cutoff <- c2df[n,2]
+  if (nrow(c2df %>% filter(X2 > cutoff))==n){
+    return(c(ans,c2df$X1[1:n]))
+  } else {
+    
   }
   
 }
