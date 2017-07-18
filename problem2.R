@@ -53,6 +53,16 @@ tallyScores <- function(currentDay) {
     teams$ptdiff[windex] <<- teams$ptdiff[windex] + spread
     teams$losses[lindex] <<- teams$losses[lindex] + 1
     teams$ptdiff[lindex] <<- teams$ptdiff[lindex] - spread
+    
+    if (teams$Division_id[windex] == teams$Division_id[lindex]) {
+      teams$dwins[windex] <<- teams$dwins[windex] + 1
+      teams$dlosses[lindex] <<- teams$dlosses[lindex] + 1
+    }
+    
+    if (teams$Conference_id[windex] == teams$Conference_id[lindex]) {
+      teams$cwins[windex] <<- teams$cwins[windex] + 1
+      teams$closses[lindex] <<- teams$closses[lindex] + 1
+    }
   }
 }
 
