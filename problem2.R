@@ -300,10 +300,16 @@ threePlusTeamLogic <- function(teams, contentionTeams, currentDate, playoffTeams
   c2df <- data.frame(matrix(unlist(listOfLists2), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
   c2df %>% arrange(decr(X2)) -> c2df
   c2cutoff <- c2df[n,2]
-  if (nrow(c2df %>% filter(X2 > cutoff))==n){
+  if (nrow(c2df %>% filter(X2 >= cutoff))==n){
     return(c(ans,c2df$X1[1:n]))
   } else {
-    
+    n2 <- nrow(c2df %>% filter(X2 > cutoff))
+    remainder = c2df %>% filter(X2 = cutoff) %>% .$Team_Name
+    playoffTeams <- c(playoffTeams,(c2df %>% filter(X2>cutoff) %>% .$Team_Name))
+    return(threePlusTeamLogic(teams,remainder,currentDate,playoffTeams,numNeeded - n2))
   }
+  
+  #Criteria 3
+  
   
 }
