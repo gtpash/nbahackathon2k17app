@@ -139,6 +139,14 @@ checkPlayoffTeams <- function(teams, teamName, teamConf, teamDiv, currentDate) {
     c(playoffTeams,twoTeamLogic(teams,teamsCopy[8,]$Team_Name,teamsCopy[9,]$Team_Name, currentDate, playoffTeams))
     return(playoffTeams)
   }
+  if (nrow(teamsCopy) > 8) {
+    playoffTeams <- teamsCopy %>% filter(wins>cutoff) %>% .$Team_Name
+    needed <- 8-length(playoffTeams)
+    contentionTeams <- teamsCopy %>% filter(wins>cutoff) %>% .$Team_Name
+    order <- threePlusTeamLogic(teams, contentionTeams, currentDate, playoffTeams, needed)
+    c(playoffTeams, order[1:needed])
+    return(playoffTeams)
+  }
   
 }
 
@@ -237,4 +245,46 @@ twoTeamLogic <- function(teams, team1, team2, currentDate, playoffTeams) {
   }
   
   return(c(team1, team2))
+}
+
+threePlusTeamLogic <- function(teams, contentionTeams, currentDate, playoffTeams, numNeeded){
+  ans <- c()
+  n <- numNeeded
+  if (length(contentionTeams) == 2){
+    return(twoTeamLogic(teams,contentionTeams[1],contentionTeams[2],currentDate,playoffTeams))
+  }
+  #Criteria1
+  for (i in length(contentionTeams)){
+    x <- c()
+    divleader <- teams %>% filter(Division_id == teams$Division_id[which(teams$Team_Name == contentionTeams[i])] ) %>% arrange(decr(dwins)) %>% .$Team_Name[1]
+    x <- c(x,divleader == contentionTeams[i])
+  }
+  clinch <- c()
+  for (j in length(x)){
+    if (x[j]){
+      clinch <- c(clinch, contentionTeams[j])
+    }
+  }
+  if (length(clinch) > 0){
+    if (length(clinch) == numNeeded) {
+      return(clinch)
+    } else if(length(clinch) > numNeeded) {
+      return(teamThreePlusLogic(teams, clinch, currentDate, playoffTeams, numNeeded - len(clinch)))
+    } else {
+      ans <- c(ans, clinch)
+    }
+  }
+  contentionTeams[clinch]<- NULL
+  n <- n - length(clinch)
+  
+  #Criteria 2
+  criteria2 <- games %>%  filter(Date<= currentDate,`Home Team` %in% contentionTeams, `Away Team` %in% contentionTeams)
+  criteria2 <- rbind(criteria2, simSeason %>% filter(Date > currentDate, `Home Team` %in% contentionTeams, `Away Team` %in% contentionTeams))
+  criteria2P <- c()
+  for (i in length(contentionTeams)) {
+    involved <- criteria2 %>% filter(`Home Team` == contentionTeams[i]|`Away Team` == contentionTeams[i])
+    w <- nrows(involved %>% filter(Winner == contentionTeams[i]))/nrows(involved)
+    criteria2P <- c(criteria2P, w)
+  }
+  
 }
