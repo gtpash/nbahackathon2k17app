@@ -171,7 +171,7 @@ twoTeamLogic <- function(teams, team1, team2, currentDate, playoffTeams) {
   criteria1 <- games %>% filter(Date <= currentDate,(`Home Team`==team1 & `Away Team`==team2)|(`Home Team`==team2 & `Away Team`==team1))
   criteria1 <- rbind(criteria1, simSeason %>% filter(Date > currentDate,(`Home Team`==team1 & `Away Team`==team2)|(`Home Team`==team2 & `Away Team`==team1)))
   for (i in 1:nrow(criteria1)){
-    if (criteria[i,]$Winner == team1) {
+    if (criteria1[i,]$Winner == team1) {
       team1Wins <- team1Wins + 1
     } else {
       team2Wins <- team2Wins + 1
@@ -260,6 +260,7 @@ twoTeamLogic <- function(teams, team1, team2, currentDate, playoffTeams) {
 threePlusTeamLogic <- function(teams, contentionTeams, currentDate, playoffTeams, numNeeded){
   ans <- c()
   n <- numNeeded
+  if (lenght(contentionTeams) < 2){return()}
   if (length(contentionTeams) == 2){
     return(twoTeamLogic(teams,contentionTeams[1],contentionTeams[2],currentDate,playoffTeams))
   }
@@ -275,17 +276,19 @@ threePlusTeamLogic <- function(teams, contentionTeams, currentDate, playoffTeams
       clinch <- c(clinch, contentionTeams[j])
     }
   }
+  if (length(clinch) != length(contentionTeams)){
   if (length(clinch) > 0){
     if (length(clinch) == numNeeded) {
-      return(clinch)
+      return(c(ans,clinch))
     } else if(length(clinch) > numNeeded) {
-      return(teamThreePlusLogic(teams, clinch, currentDate, playoffTeams, numNeeded - len(clinch)))
+      return(c(ans,teamThreePlusLogic(teams, clinch, currentDate, playoffTeams, numNeeded - len(clinch))))
     } else {
       ans <- c(ans, clinch)
     }
   }
   contentionTeams[clinch]<- NULL
   n <- n - length(clinch)
+  }
   
   #Criteria 2
   criteria2 <- games %>%  filter(Date<= currentDate,`Home Team` %in% contentionTeams, `Away Team` %in% contentionTeams)
@@ -300,16 +303,69 @@ threePlusTeamLogic <- function(teams, contentionTeams, currentDate, playoffTeams
   c2df <- data.frame(matrix(unlist(listOfLists2), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
   c2df %>% arrange(decr(X2)) -> c2df
   c2cutoff <- c2df[n,2]
-  if (nrow(c2df %>% filter(X2 >= cutoff))==n){
+  
+  if (nrow(c2df %>% filter(X2 >= c2cutoff)) != length(contentionTeams)){
+  if (nrow(c2df %>% filter(X2 >= c2cutoff))==n){
     return(c(ans,c2df$X1[1:n]))
   } else {
-    n2 <- nrow(c2df %>% filter(X2 > cutoff))
-    remainder = c2df %>% filter(X2 = cutoff) %>% .$Team_Name
-    playoffTeams <- c(playoffTeams,(c2df %>% filter(X2>cutoff) %>% .$Team_Name))
-    return(threePlusTeamLogic(teams,remainder,currentDate,playoffTeams,numNeeded - n2))
+    n2 <- nrow(c2df %>% filter(X2 > c2cutoff))
+    remainder <- c2df %>% filter(X2 == c2cutoff) %>% .$Team_Name
+    playoffTeams <- c(playoffTeams,(c2df %>% filter(X2 > c2cutoff) %>% .$Team_Name))
+    return(c(ans,threePlusTeamLogic(teams,remainder,currentDate,playoffTeams,n - n2)))
+  }
   }
   
+
   #Criteria 3
+  divs <- c()
+  for(i in 1:length(contentionTeams)){
+    c(divs, teams$Division_id[which(teams$Team_Name == contentionTeams[i])])
+  }
+  if (length(unique(divs))>1){
+    divArray <- c()
+    for(i in 1: length(contentionTeams)){
+      stats <- teams %>% filter(Team_Name == contentionTeams[i])
+      divArray <- c(divArray,stats$dwins/(stats$dwins+stats$dlosses))
+    }
+    listOfLists3 <- list(contentionTeams, divArray)
+    c3df <- data.frame(matrix(unlist(listOfLists3), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
+    c3df %>% arrange(decr(X2)) -> c3df
+    c3cutoff <- c3df[n,2]
+    
+    if (nrow(c3df %>% filter(X2 >= c3cutoff)) != length(contentionTeams)){
+      if (nrow(c3df %>% filter(X2 >= c3cutoff))==n){
+        return(c(ans,c3df$X1[1:n]))
+      } else {
+        n3 <- nrow(c3df %>% filter(X2 >= c3cutoff))
+        remainder <- c3df %>% filter(X2 == c3cutoff) %>% .$Team_Name
+        playoffTeams <- c(playoffTeams,(c3df %>% filter(X2 > c3cutoff)%>% .$Team_Name))
+        return(c(ans,threePlusTeamLogic(teams,remainder,currentDate, playoffTeams,n-n3)))
+      }
+    }
+  }
+  
+  #Criteria 4
+  confArray <- c()
+  for(i in 1: length(contentionTeams)){
+    statsConfs <- teams %>% filter(Team_Name == contentionTeams[i])
+    confArray <- c(confArray,stats$cwins/(stats$cwins+stats$closses))
+  }
+  listOfLists4 <- list(contentionTeams, confArray)
+  c4df <- data.frame(matrix(unlist(listOfLists4), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
+  c4df %>% arrange(decr(X2)) -> c4df
+  c4cutoff <- c4df[n,2]
+  
+  if (nrow(c4df %>% filter(X2 >= c4cutoff)) != length(contentionTeams)){
+    if (nrow(c4df %>% filter(X2 >= c4cutoff))==n){
+      return(c(ans,c4df$X1[1:n]))
+    } else {
+      n4 <- nrow(c4df %>% filter(X2 >= c4cutoff))
+      remainder <- c4df %>% filter(X2 == c4cutoff) %>% .$Team_Name
+      playoffTeams <- c(playoffTeams,(c4df %>% filter(X2 > c4cutoff)%>% .$Team_Name))
+      return(c(ans,threePlusTeamLogic(teams,remainder,currentDate, playoffTeams,n-n4)))
+    }
+  }
   
   
+  return(c(ans,contentionTeams))
 }
