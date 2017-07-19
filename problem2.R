@@ -129,8 +129,11 @@ generateBestCase <- function(teamName) {
   #current team wins out
   simSeason$Winner[which(simSeason$`Home Team` == teamName | simSeason$`Away Team` == teamName)] <- teamName
   
-  #games b/w teams in other divisions that are in you
-  othergames <- which(simSeason$Winner == "Home" | simSeason$Winner == "Away")
+  #get indices for games not yet handled
+  simgames <- nrow(simSeason)
+  temp <- 1:simgames
+  othergames <- which(!temp%in%union(outconfs,outdivs))
+  rm(temp,simgames)
   
   
 }
