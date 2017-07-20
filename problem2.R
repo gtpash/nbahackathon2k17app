@@ -139,8 +139,10 @@ generateBestCase <- function(teamName) {
   hwins <- othergames[outcomes > 0.5]
   lwins <- setdiff(othergames,hwins)
   
-  simSeason$Winner[hwins] <- simSeason$`Home Team`
-  simSeason$Winner[lwins] <- simSeason$`Away Team`
+  simSeason$Winner[hwins] <- simSeason$`Home Team`[hwins]
+  simSeason$Winner[lwins] <- simSeason$`Away Team`[lwins]
+  
+  return(simSeason)
   
 }
 
