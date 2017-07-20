@@ -134,7 +134,13 @@ generateBestCase <- function(teamName) {
   temp <- 1:simgames
   othergames <- which(!temp%in%union(outconfs,outdivs))
   rm(temp,simgames)
+  #coinflip outcomes
+  outcomes <- runif(length(othergames))
+  hwins <- othergames[outcomes > 0.5]
+  lwins <- setdiff(othergames,hwins)
   
+  simSeason$Winner[hwins] <- simSeason$`Home Team`
+  simSeason$Winner[lwins] <- simSeason$`Away Team`
   
 }
 
