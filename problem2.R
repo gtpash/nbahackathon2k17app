@@ -81,7 +81,7 @@ confs <- list("East" = as.vector(subset(teams$Team_Name,teams$Conference_id=="Ea
 divisions <- list("Atlantic" = as.vector(subset(teams$Team_Name,teams$Division_id=="Atlantic")),
                   "Central" = as.vector(subset(teams$Team_Name,teams$Division_id=="Central")), 
                   "Southeast" = as.vector(subset(teams$Team_Name,teams$Division_id=="Southeast")),
-                  "Northwest" = as.vector(subset(teams$Team_Name,teams$Division_id=="NOrthwest")),
+                  "Northwest" = as.vector(subset(teams$Team_Name,teams$Division_id=="Northwest")),
                   "Pacific" = as.vector(subset(teams$Team_Name,teams$Division_id=="Pacific")),
                   "Southwest" = as.vector(subset(teams$Team_Name,teams$Division_id=="Southwest")))
 
