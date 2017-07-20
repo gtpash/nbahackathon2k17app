@@ -88,17 +88,14 @@ divisions <- list("Atlantic" = as.vector(subset(teams$Team_Name,teams$Division_i
 #test teamName
 teamName <- teams$Team_Name[13]
 
-#We probs want to initialize a best case scenario for each team and then update that with what changes
-#   due to how actual results play out... but we always know that they want to
+## Rules for best case
 # win out
 # have everyone in their conference lose to the other conference
 # have everyone in their division lose to teams outside of it
-# winner for games in same division is the team with the worse record of the pair... (this will be tricky)
 # can't rule a team out on pt differential
+# other games are decided by a coinflip
 
-#want to store each bestcase scenario in a giant list for the teams
-
-#initial simulation of best case scenario for a team (IN PROGRESS)
+#simulate best case scenario for a team
 generateBestCase <- function(teamName) {
   teamconf <- teams$Conference_id[which(teams$Team_Name == teamName)]
   teamdiv <- teams$Division_id[which(teams$Team_Name == teamName)]
