@@ -65,6 +65,8 @@ tallyScores <- function(currentDay) {
   }
 }
 
+
+
 tally <- function(hTeam, aTeam, hScore, aScore, winner){
   if (hTeam == winner){
     spread <- hScore - aScore
@@ -432,8 +434,11 @@ for (i in 161:162){
         
         simSeason <- generateBestCase(team, gamedays[i])
         
-        #update tempTeams here
+        #update simTeams here
         simTeams <- tempTeams
+        for (j in length(unique(simSeason$Date))) {
+          #update simTeams
+        }
         
         #check who makes playoffs here
         teamconf <- teams$Conference_id[which(teams$Team_Name == team)]
@@ -445,6 +450,8 @@ for (i in 161:162){
         simno <- simno + 1
         rm(simTeams)
       }
+      
+      rm(tempTeams)
       
     }
     
