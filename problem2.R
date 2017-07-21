@@ -28,7 +28,7 @@ games$Winner[adex] <- games$`Away Team`[adex]
 rm(adex,hdex)
 
 eliminations <- read_xlsx("Analytics_Attachment.xlsx",sheet=3)
-eliminations$`Date Eliminated` <<- "Playoffs"
+eliminations$`Date Eliminated` <- "Playoffs"
 
 #update teams matrix with information from game day (need to update with cwins/closses/dwins/dlosses)
 tallyScores <- function(currentDay) {
@@ -418,7 +418,7 @@ for (i in 1:length(gamedays)){
       simno <- 1
       tempTeams <- teams
       
-      print("sims starting")
+      #print("sims starting")
       while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] == "Playoffs") & (simno < 2)) {
         
         
@@ -463,12 +463,12 @@ for (i in 1:length(gamedays)){
         pcheck <- checkPlayoffTeams(simTeams,team,teamconf,teamdiv,gamedays[i])
         #print(pcheck)
         if (!team %in% pcheck) {
-          eliminations$`Date Eliminated`[which(eliminations$Team == team)] <<- gamedays[i]
+          eliminations$`Date Eliminated`[which(eliminations$Team == team)] <- gamedays[i]
         }
         simno <- simno + 1
         rm(simTeams)
       }
-      print("sims ended")
+     # print("sims ended")
       rm(tempTeams)
       
     }
