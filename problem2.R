@@ -156,9 +156,9 @@ checkPlayoffTeams <- function(checkTeams, teamName, teamConf, teamDiv, currentDa
     playoffTeams <- teamsCopy %>% filter(wins>cutoff) %>% .$Team_Name
     needed <- 8-length(playoffTeams)
     contentionTeams <- teamsCopy %>% filter(wins>cutoff) %>% .$Team_Name
-    print("3+ teams tied here")
+   # print("3+ teams tied here")
     order <- threePlusTeamLogic(checkTeams, contentionTeams, currentDate, playoffTeams, needed)
-    print("3+ teams tie broken")
+  #  print("3+ teams tie broken")
     c(playoffTeams, order[1:needed])
     return(playoffTeams)
   }
