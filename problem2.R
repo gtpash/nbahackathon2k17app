@@ -28,7 +28,7 @@ games$Winner[adex] <- games$`Away Team`[adex]
 rm(adex,hdex)
 
 eliminations <- read_xlsx("Analytics_Attachment.xlsx",sheet=3)
-eliminations$`Date Eliminated` = "Playoffs"
+eliminations$`Date Eliminated` <<- "Playoffs"
 
 #update teams matrix with information from game day (need to update with cwins/closses/dwins/dlosses)
 tallyScores <- function(currentDay) {
@@ -305,7 +305,8 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
     criteria2P <- c(criteria2P, w)
   }
   listOfLists2 <- list(contentionTeams,criteria2P)
-  c2df <- data.frame(matrix(unlist(listOfLists2), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
+#  c2df <- tibble(matrix(unlist(listOfLists2), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
+  c2df <- data.frame(lapply(data.frame(t(listOfLists2)),unlist),stringsAsFactors = FALSE)
   c2df %>% arrange(desc(X2)) -> c2df
   c2cutoff <- c2df[n,2]
   
@@ -400,8 +401,8 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
 }
 
 #main loop
-#for (i in 1:length(gamedays)){
-for (i in 161:162){
+for (i in 1:length(gamedays)){
+#for (i in 161:162){
   #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 60
   if (i < 60) {
     tallyScores(gamedays[i])
