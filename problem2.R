@@ -425,16 +425,25 @@ for (i in 161:162){
       
       #print(team)
       simno <- 1
+      tempTeams <- teams
+      
       while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] != "Playoffs") & (simno < 1000)) {
         print("sims starting")
+        
         simSeason <- generateBestCase(team, gamedays[i])
+        
+        #update tempTeams here
+        simTeams <- tempTeams
+        
+        #check who makes playoffs here
         teamconf <- teams$Conference_id[which(teams$Team_Name == team)]
         teamdiv <- teams$Division_id[which(teams$Team_Name == team)]
-        pcheck <- checkPlayoffTeams(teams,team,teamconf,teamdiv,gamedays[i])
+        pcheck <- checkPlayoffTeams(simTeams,team,teamconf,teamdiv,gamedays[i])
         if (!team %in% pcheck) {
           eliminations$`Date Eliminated`[which(eliminations$Team == team)] <<- gamedays[i]
         }
         simno <- simno + 1
+        rm(simTeams)
       }
       
     }
