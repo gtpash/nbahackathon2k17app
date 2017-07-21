@@ -1,9 +1,10 @@
 #remember to set your working directory & install the "readxl" package
 
-#install.packages(c("readxl","magrittr","dplyr")
+#install.packages(c("readxl","magrittr","dplyr","lubridate"))
 library(readxl)
 library(magrittr)
 library(dplyr)
+library(lubridate)
 
 #initialize data frame to hold team information
 teams <- read_xlsx("Analytics_Attachment.xlsx", sheet = 1)
@@ -254,6 +255,7 @@ twoTeamLogic <- function(checkTeams, team1, team2, currentDate, playoffTeams) {
                                     (`Away Team` == team2 & team2Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
   team1part6 <- nrow((criteria6a %>% filter(Winner == team1)))/nrow(criteria6a)
   team2part6 <- nrow((criteria6b %>% filter(Winner == team2)))/nrow(criteria6b)
+  print(team1part6)
   if (team1part6 > team2part6) {
     return(team1)
   }
@@ -414,7 +416,7 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
 for (i in 1:length(gamedays)){
 #for (i in 161:162){
   #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 80
-  if (i < 150) {
+  if (i < 50) {
     tallyScores(gamedays[i])
     print(gamedays[i])
   } else {
@@ -478,7 +480,8 @@ for (i in 1:length(gamedays)){
         #print(pcheck)
         if (!team %in% pcheck) {
           print("update eliminations")
-          eliminations$`Date Eliminated`[which(eliminations$Team == team)] <- gamedays[i]
+          print(gamedays[i])
+          eliminations$`Date Eliminated`[which(eliminations$Team == team)] <- paste(month(gamedays[i]),day(gamedays[i]),year(gamedays[i]),sep="/")
         }
         simno <- simno + 1
         rm(simTeams)
