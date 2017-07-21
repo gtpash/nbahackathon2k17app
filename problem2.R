@@ -404,7 +404,7 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
 for (i in 1:length(gamedays)){
 #for (i in 161:162){
   #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 80
-  if (i < 80) {
+  if (i < 158) {
     tallyScores(gamedays[i])
     print(gamedays[i])
   } else {
@@ -421,44 +421,45 @@ for (i in 1:length(gamedays)){
       #print("sims starting")
       while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] == "Playoffs") & (simno < 2)) {
         
-        if (gamedays[i] < 162) {
+        if (i < 162) {
           simSeason <- generateBestCase(team, gamedays[i])
+          
+          #update simTeams here
+          simTeams <- tempTeams
+          for (game in 1:dim(simSeason)[1]) {
+            if (simSeason$Winner[game] == simSeason$`Home Team`[game]) {
+              winner <- simSeason$`Home Team`[game]
+              loser <- simSeason$`Away Team`[game]
+              spread <- simSeason$`Home Score`[game] - simSeason$`Away Score`[game]
+            } else {
+              winner <- simSeason$`Away Team`[game]
+              loser <- simSeason$`Home Team`[game]
+              spread <- simSeason$`Away Score`[game] - simSeason$`Home Score`[game]
+            }
+            
+            windex <- which(simTeams$Team_Name == winner)
+            lindex <- which(simTeams$Team_Name == loser)
+            
+            #assign wins, losses, and ptdiff to the global simTeams df
+            simTeams$wins[windex] <- simTeams$wins[windex] + 1
+            simTeams$ptdiff[windex] <- simTeams$ptdiff[windex] + spread
+            simTeams$losses[lindex] <- simTeams$losses[lindex] + 1
+            simTeams$ptdiff[lindex] <- simTeams$ptdiff[lindex] - spread
+            
+            if (simTeams$Division_id[windex] == simTeams$Division_id[lindex]) {
+              simTeams$dwins[windex] <- simTeams$dwins[windex] + 1
+              simTeams$dlosses[lindex] <- simTeams$dlosses[lindex] + 1
+            }
+            
+            if (simTeams$Conference_id[windex] == simTeams$Conference_id[lindex]) {
+              simTeams$cwins[windex] <- simTeams$cwins[windex] + 1
+              simTeams$closses[lindex] <- simTeams$closses[lindex] + 1
+            }
+          }
         } else {
-          simSeason <- games
+          simTeams <- teams
         }
         
-        #update simTeams here
-        simTeams <- tempTeams
-        for (game in 1:dim(simSeason)[1]) {
-          if (simSeason$Winner[game] == simSeason$`Home Team`[game]) {
-            winner <- simSeason$`Home Team`[game]
-            loser <- simSeason$`Away Team`[game]
-            spread <- simSeason$`Home Score`[game] - simSeason$`Away Score`[game]
-          } else {
-            winner <- simSeason$`Away Team`[game]
-            loser <- simSeason$`Home Team`[game]
-            spread <- simSeason$`Away Score`[game] - simSeason$`Home Score`[game]
-          }
-          
-          windex <- which(simTeams$Team_Name == winner)
-          lindex <- which(simTeams$Team_Name == loser)
-          
-          #assign wins, losses, and ptdiff to the global simTeams df
-          simTeams$wins[windex] <- simTeams$wins[windex] + 1
-          simTeams$ptdiff[windex] <- simTeams$ptdiff[windex] + spread
-          simTeams$losses[lindex] <- simTeams$losses[lindex] + 1
-          simTeams$ptdiff[lindex] <- simTeams$ptdiff[lindex] - spread
-          
-          if (simTeams$Division_id[windex] == simTeams$Division_id[lindex]) {
-            simTeams$dwins[windex] <- simTeams$dwins[windex] + 1
-            simTeams$dlosses[lindex] <- simTeams$dlosses[lindex] + 1
-          }
-          
-          if (simTeams$Conference_id[windex] == simTeams$Conference_id[lindex]) {
-            simTeams$cwins[windex] <- simTeams$cwins[windex] + 1
-            simTeams$closses[lindex] <- simTeams$closses[lindex] + 1
-          }
-        }
         
         #check who makes playoffs here
         teamconf <- teams$Conference_id[which(teams$Team_Name == team)]
@@ -466,6 +467,7 @@ for (i in 1:length(gamedays)){
         pcheck <- checkPlayoffTeams(simTeams,team,teamconf,teamdiv,gamedays[i])
         #print(pcheck)
         if (!team %in% pcheck) {
+          print("update eliminations")
           eliminations$`Date Eliminated`[which(eliminations$Team == team)] <- gamedays[i]
         }
         simno <- simno + 1
