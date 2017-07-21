@@ -215,11 +215,13 @@ twoTeamLogic <- function(checkTeams, team1, team2, currentDate, playoffTeams) {
   if (team1Div == team2Div) {
      team1DivP <- team1stats$dwins/(team1stats$dwins + team1stats$dlosses)
      team2DivP <- team2stats$dwins/(team2stats$dwins + team2stats$dlosses)
-     if (team1DivP > team2DivP) {
-       return(team1)
-     }
-     if (team2DivP < team2DivP) {
-       return(team2)
+     if(!(is.na(team1DivP)|is.na(team2DivP))){
+      if (team1DivP > team2DivP) {
+        return(team1)
+      }
+      if (team2DivP < team2DivP) {
+        return(team2)
+      }
      }
   }
   
@@ -251,26 +253,18 @@ twoTeamLogic <- function(checkTeams, team1, team2, currentDate, playoffTeams) {
   }
   
   #Criteria 6 win % against eligible playoff teams, other conf
-  otherConf <- checkTeams %>% filter(Conference_id != teamConf) %>% arrage(desc(wins))
+  otherConf <- checkTeams %>% filter(Conference_id != team1Conf) %>% arrange(desc(wins))
   otherCutoff <- otherConf$wins[8]
   otherConf %>% filter(wins >= otherCutoff) %>% .$Team_Name -> otherConfTeams
   games6 <- games %>% mutate(hConf = getConfs(`Home Team`)) %>% mutate(aConf = getConfs(`Away Team`))
   simSeason6 <- simSeason %>% mutate(hConf = getConfs(`Home Team`)) %>% mutate(aConf = getConfs(`Away Team`))
   
   spliced1 <- games6 %>% filter(Date <= currentDate, (`Home Team` == team1|`Away Team` == team1), hConf != aConf)
-  spliced1 <- rbind(spliced, simSeason6 %>% filter(Date > currentDate, (`Home Team` == team1|`Away Team` == team1), hConf != aConf))
+  spliced1 <- rbind(spliced1, simSeason6 %>% filter(Date > currentDate, (`Home Team` == team1|`Away Team` == team1), hConf != aConf))
   spliced2 <- games6 %>% filter(Date <= currentDate, (`Home Team` == team2|`Away Team` == team2), hConf != aConf)
-  spliced2 <- rbind(spliced, simSeason6 %>% filter(Date > currentDate, (`Home Team` == team2|`Away Team` == team2), hConf != aConf))
-  
-  # criteria6a <- eligibleTeams %>% filter((`Home Team` == team1 & `Away Team` %in% possibleTeams) |
-  #                                   (`Away Team` == team1 & `Home Team` %in% possibleTeams)) %>% 
-  #                                   filter((`Home Team` == team1 & team1Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
-  #                                   (`Away Team` == team1 & team1Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
-  # criteria6b <- eligibleTeams %>% filter((`Home Team` == team2 & `Away Team` %in% possibleTeams) |
-  #                                   (`Away Team` == team2 & `Home Team` %in% possibleTeams)) %>% 
-  #                                   filter((`Home Team` == team2 & team2Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
-  #                                   (`Away Team` == team2 & team2Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
-  team1part6 <- nrow((spliced1 %>% filter(Winner == team1)))/nrow(spliced1)
+  spliced2 <- rbind(spliced2, simSeason6 %>% filter(Date > currentDate, (`Home Team` == team2|`Away Team` == team2), hConf != aConf))
+ 
+   team1part6 <- nrow((spliced1 %>% filter(Winner == team1)))/nrow(spliced1)
   team2part6 <- nrow((spliced2 %>% filter(Winner == team2)))/nrow(spliced2)
   print(team1part6)
   if (team1part6 > team2part6) {
@@ -356,7 +350,7 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
   for(i in 1:length(contentionTeams)){
     divs[i] = checkTeams$Division_id[which(checkTeams$Team_Name == contentionTeams[i])]
   }
-  if (length(unique(divs))>1){
+  if (length(unique(divs))==1){
     divArray <- vector("double",length(contentionTeams))
     for(i in 1: length(contentionTeams)){
       stats <- checkTeams %>% filter(Team_Name == contentionTeams[i])
@@ -402,14 +396,14 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
   }
   
   #Criteria 5 win% against eligible playoff teams own conf
+
   c5array <- vector("double",length(contentionTeams))
   all <- c(playoffTeams, contentionTeams)
+  c5Eligible <- games %>% filter(Date <= currentDate, `Home Team` %in% all,`Away Team` %in% all)
+  c5Eligible <- rbind(c5Eligible, simSeason %>% filter(Date > currentDate, `Home Team` %in% all,`Away Team` %in% all))
+  
   for (i in 1:length(contentionTeams)) {
-    theConf = checkTeams$Conference_id[which(checkTeams$Team_Name == contentionTeams[i])]
-    c6stats <- criteria2 %>% filter((`Home Team` == contentionTeams[i] & `Away Team` %in% all)|
-                                    (`Away Team` == contentionTeams[i] & `Home Team` %in% all)) %>%
-                                    filter((`Home Team` == contentionTeams[i] & theConf == checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
-                                    (`Away Team` == contentionTeams[i] & theConf == checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)])) 
+    c6stats <- c5Eligible %>% filter((`Home Team` == contentionTeams[i])|(`Away Team` == contentionTeams[i]))
     c5array[i] = nrow((c6stats %>% filter(Winner == contentionTeams[i])))/nrow(c6stats)
   }
   listOfLists5 <- list(contentionTeams, c5array)
@@ -434,7 +428,7 @@ numElim <- 0
 for (i in 1:length(gamedays)){
 #for (i in 161:162){
   #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 80
-  if (i < 130) {
+  if (i < 25) {
     tallyScores(gamedays[i])
     print(gamedays[i])
   } else {
@@ -449,9 +443,9 @@ for (i in 1:length(gamedays)){
       tempTeams <- teams
       
       #print("sims starting")
-      while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] == "Playoffs") & (simno < 2)) {
+      while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] == "Playoffs") & (simno < 6)) {
         
-        if (i < 162) {
+        if (i < 90) {
           simSeason <- generateBestCase(team, gamedays[i])
           
           #update simTeams here
