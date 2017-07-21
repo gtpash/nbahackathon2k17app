@@ -65,17 +65,6 @@ tallyScores <- function(currentDay) {
   }
 }
 
-
-
-tally <- function(hTeam, aTeam, hScore, aScore, winner){
-  if (hTeam == winner){
-    spread <- hScore - aScore
-  } else {
-    spread <- aScore - hScore
-  }
-  
-}
-
 #advance the game date
 advanceDay <- function() {
   gamesToday <- games[which(games$Date == currentDay)]
@@ -436,8 +425,35 @@ for (i in 161:162){
         
         #update simTeams here
         simTeams <- tempTeams
-        for (j in length(unique(simSeason$Date))) {
-          #update simTeams
+        for (game in 1:dim(simSeason)[1]) {
+          if (simSeason$Winner[game] == simSeason$`Home Team`[game]) {
+            winner <- simSeason$`Home Team`[game]
+            loser <- simSeason$`Away Team`[game]
+            spread <- simSeason$`Home Score`[game] - simSeason$`Away Score`[game]
+          } else {
+            winner <- simSeason$`Away Team`[game]
+            loser <- simSeason$`Home Team`[game]
+            spread <- simSeason$`Away Score`[game] - simSeason$`Home Score`[game]
+          }
+          
+          windex <- which(simTeams$Team_Name == winner)
+          lindex <- which(simTeams$Team_Name == loser)
+          
+          #assign wins, losses, and ptdiff to the global simTeams df
+          simTeams$wins[windex] <<- simTeams$wins[windex] + 1
+          simTeams$ptdiff[windex] <<- simTeams$ptdiff[windex] + spread
+          simTeams$losses[lindex] <<- simTeams$losses[lindex] + 1
+          simTeams$ptdiff[lindex] <<- simTeams$ptdiff[lindex] - spread
+          
+          if (simTeams$Division_id[windex] == simTeams$Division_id[lindex]) {
+            simTeams$dwins[windex] <<- simTeams$dwins[windex] + 1
+            simTeams$dlosses[lindex] <<- simTeams$dlosses[lindex] + 1
+          }
+          
+          if (simTeams$Conference_id[windex] == simTeams$Conference_id[lindex]) {
+            simTeams$cwins[windex] <<- simTeams$cwins[windex] + 1
+            simTeams$closses[lindex] <<- simTeams$closses[lindex] + 1
+          }
         }
         
         #check who makes playoffs here
