@@ -422,7 +422,7 @@ for (i in 150:151){
         teamdiv <- teams$Division_id[which(teams$Team_Name == teamName)]
         pcheck <- checkPlayoffTeams(teams,team,teamconf,teamdiv,day)
         if (!team %in% pcheck) {
-          eliminations$`Date Eliminated`[which(eliminations$Team == team)] = day
+          eliminations$`Date Eliminated`[which(eliminations$Team == team)] <<- day
         }
         
       }
