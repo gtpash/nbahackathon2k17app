@@ -65,6 +65,15 @@ tallyScores <- function(currentDay) {
   }
 }
 
+tally <- function(hTeam, aTeam, hScore, aScore, winner){
+  if (hTeam == winner){
+    spread <- hScore - aScore
+  } else {
+    spread <- aScore - hScore
+  }
+  
+}
+
 #advance the game date
 advanceDay <- function() {
   gamesToday <- games[which(games$Date == currentDay)]
@@ -401,7 +410,8 @@ threePlusTeamLogic <- function(teams, contentionTeams, currentDate, playoffTeams
 }
 
 #main loop
-for (i in 150:151){
+#for (i in 1:length(gamedays)){
+for (i in 161:162){
   #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 60
   if (i < 60) {
     tallyScores(gamedays[i])
@@ -418,13 +428,13 @@ for (i in 150:151){
       while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] != "Playoffs") & (simno < 1000)) {
         print("sims starting")
         simSeason <- generateBestCase(team, gamedays[i])
-        teamconf <- teams$Conference_id[which(teams$Team_Name == teamName)]
-        teamdiv <- teams$Division_id[which(teams$Team_Name == teamName)]
-        pcheck <- checkPlayoffTeams(teams,team,teamconf,teamdiv,day)
+        teamconf <- teams$Conference_id[which(teams$Team_Name == team)]
+        teamdiv <- teams$Division_id[which(teams$Team_Name == team)]
+        pcheck <- checkPlayoffTeams(teams,team,teamconf,teamdiv,gamedays[i])
         if (!team %in% pcheck) {
-          eliminations$`Date Eliminated`[which(eliminations$Team == team)] <<- day
+          eliminations$`Date Eliminated`[which(eliminations$Team == team)] <<- gamedays[i]
         }
-        
+        simno <- simno + 1
       }
       
     }
