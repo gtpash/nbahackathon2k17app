@@ -403,8 +403,8 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
 #main loop
 for (i in 1:length(gamedays)){
 #for (i in 161:162){
-  #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 60
-  if (i < 60) {
+  #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 80
+  if (i < 80) {
     tallyScores(gamedays[i])
     print(gamedays[i])
   } else {
@@ -421,8 +421,11 @@ for (i in 1:length(gamedays)){
       #print("sims starting")
       while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] == "Playoffs") & (simno < 2)) {
         
-        
-        simSeason <- generateBestCase(team, gamedays[i])
+        if (gamedays[i] < 162) {
+          simSeason <- generateBestCase(team, gamedays[i])
+        } else {
+          simSeason <- games
+        }
         
         #update simTeams here
         simTeams <- tempTeams
