@@ -19,7 +19,6 @@ teams$dlosses <- 0
 games <- read_xlsx("Analytics_Attachment.xlsx", sheet = 2)
 games$Date <- as.Date(games$Date)
 gamedays <- unique(games$Date)
-currentDay <- gamedays[1]
 
 #set winner to be the team name
 hdex <- which(games$Winner == "Home")
@@ -84,9 +83,6 @@ divisions <- list("Atlantic" = as.vector(subset(teams$Team_Name,teams$Division_i
                   "Northwest" = as.vector(subset(teams$Team_Name,teams$Division_id=="Northwest")),
                   "Pacific" = as.vector(subset(teams$Team_Name,teams$Division_id=="Pacific")),
                   "Southwest" = as.vector(subset(teams$Team_Name,teams$Division_id=="Southwest")))
-
-#test teamName
-teamName <- teams$Team_Name[13]
 
 ## Rules for best case
 # win out
