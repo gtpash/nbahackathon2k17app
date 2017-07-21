@@ -148,10 +148,10 @@ checkPlayoffTeams <- function(checkTeams, teamName, teamConf, teamDiv, currentDa
     playoffTeams <- teamsCopy$Team_Name
     return(playoffTeams)
   }
-  if (nrow(teamsCopy) == 9 & teamsCopy[7,4] > cutoff) {
+  if (nrow(teamsCopy) == 9 & teamsCopy$wins[7] > cutoff) {
     playoffTeams <- teamsCopy$Team_Name[1:7]
   #  print("2 teams tied")
-    c(playoffTeams,twoTeamLogic(teams,teamsCopy[8,]$Team_Name,teamsCopy[9,]$Team_Name, currentDate, playoffTeams))
+    playoffTeams <- c(playoffTeams,twoTeamLogic(teams,teamsCopy$Team_Name[8],teamsCopy$Team_Name[9], currentDate, playoffTeams))
    # print("2 team tie broken")
     return(playoffTeams)
   }
@@ -166,6 +166,14 @@ checkPlayoffTeams <- function(checkTeams, teamName, teamConf, teamDiv, currentDa
     return(playoffTeams)
   }
   
+}
+
+getConfs <- function(team){
+  x <- vector("character",length(team))
+  for (t in 1:length(team)){
+    x[t] = teams$Conference_id[which(teams$Team_Name == team[t])]
+  }
+  return(x)
 }
 
 twoTeamLogic <- function(checkTeams, team1, team2, currentDate, playoffTeams) {
@@ -227,14 +235,12 @@ twoTeamLogic <- function(checkTeams, team1, team2, currentDate, playoffTeams) {
   
   #Criteria 5 win % against eligible playoff teams, own conf
   possibleTeams <- c(playoffTeams,team1,team2)
-  criteria5a <- criteria1 %>% filter((`Home Team` == team1 & `Away Team` %in% possibleTeams) |
-                          (`Away Team` == team1 & `Home Team` %in% possibleTeams)) %>% 
-                          filter((`Home Team` == team1 & team1Conf == checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
-                          (`Away Team` == team1 & team1Conf == checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
-  criteria5b <- criteria1 %>% filter((`Home Team` == team2 & `Away Team` %in% possibleTeams) |
-                          (`Away Team` == team2 & `Home Team` %in% possibleTeams)) %>% 
-                          filter((`Home Team` == team2 & team2Conf == checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
-                          (`Away Team` == team2 & team2Conf == checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
+  eligibleTeams <- games %>% filter(Date <= currentDate, `Home Team` %in% possibleTeams,`Away Team` %in% possibleTeams)
+  eligibleTeams <- rbind(eligibleTeams,simSeason %>% filter(Date>currentDate,`Home Team` %in% possibleTeams,`Away Team` %in% possibleTeams))
+  
+  criteria5a <- eligibleTeams %>% filter((`Home Team` == team1)|(`Away Team` == team1)) 
+  criteria5b <- eligibleTeams %>% filter((`Home Team` == team2)|(`Away Team` == team2)) 
+                        
   team1part5 <- nrow((criteria5a %>% filter(Winner == team1)))/nrow(criteria5a)
   team2part5 <- nrow((criteria5b %>% filter(Winner == team2)))/nrow(criteria5b)
   if (team1part5 > team2part5) {
@@ -245,16 +251,27 @@ twoTeamLogic <- function(checkTeams, team1, team2, currentDate, playoffTeams) {
   }
   
   #Criteria 6 win % against eligible playoff teams, other conf
-  criteria6a <- criteria1 %>% filter((`Home Team` == team1 & `Away Team` %in% possibleTeams) |
-                                    (`Away Team` == team1 & `Home Team` %in% possibleTeams)) %>% 
-                                    filter((`Home Team` == team1 & team1Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
-                                    (`Away Team` == team1 & team1Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
-  criteria6b <- criteria1 %>% filter((`Home Team` == team2 & `Away Team` %in% possibleTeams) |
-                                    (`Away Team` == team2 & `Home Team` %in% possibleTeams)) %>% 
-                                    filter((`Home Team` == team2 & team2Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
-                                    (`Away Team` == team2 & team2Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
-  team1part6 <- nrow((criteria6a %>% filter(Winner == team1)))/nrow(criteria6a)
-  team2part6 <- nrow((criteria6b %>% filter(Winner == team2)))/nrow(criteria6b)
+  otherConf <- checkTeams %>% filter(Conference_id != teamConf) %>% arrage(desc(wins))
+  otherCutoff <- otherConf$wins[8]
+  otherConf %>% filter(wins >= otherCutoff) %>% .$Team_Name -> otherConfTeams
+  games6 <- games %>% mutate(hConf = getConfs(`Home Team`)) %>% mutate(aConf = getConfs(`Away Team`))
+  simSeason6 <- simSeason %>% mutate(hConf = getConfs(`Home Team`)) %>% mutate(aConf = getConfs(`Away Team`))
+  
+  spliced1 <- games6 %>% filter(Date <= currentDate, (`Home Team` == team1|`Away Team` == team1), hConf != aConf)
+  spliced1 <- rbind(spliced, simSeason6 %>% filter(Date > currentDate, (`Home Team` == team1|`Away Team` == team1), hConf != aConf))
+  spliced2 <- games6 %>% filter(Date <= currentDate, (`Home Team` == team2|`Away Team` == team2), hConf != aConf)
+  spliced2 <- rbind(spliced, simSeason6 %>% filter(Date > currentDate, (`Home Team` == team2|`Away Team` == team2), hConf != aConf))
+  
+  # criteria6a <- eligibleTeams %>% filter((`Home Team` == team1 & `Away Team` %in% possibleTeams) |
+  #                                   (`Away Team` == team1 & `Home Team` %in% possibleTeams)) %>% 
+  #                                   filter((`Home Team` == team1 & team1Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
+  #                                   (`Away Team` == team1 & team1Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
+  # criteria6b <- eligibleTeams %>% filter((`Home Team` == team2 & `Away Team` %in% possibleTeams) |
+  #                                   (`Away Team` == team2 & `Home Team` %in% possibleTeams)) %>% 
+  #                                   filter((`Home Team` == team2 & team2Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Away Team`)]) |
+  #                                   (`Away Team` == team2 & team2Conf != checkTeams$Conference_id[which(checkTeams$Team_Name == `Home Team`)]))
+  team1part6 <- nrow((spliced1 %>% filter(Winner == team1)))/nrow(spliced1)
+  team2part6 <- nrow((spliced2 %>% filter(Winner == team2)))/nrow(spliced2)
   print(team1part6)
   if (team1part6 > team2part6) {
     return(team1)
@@ -413,16 +430,17 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
 }
 
 #main loop
+numElim <- 0
 for (i in 1:length(gamedays)){
 #for (i in 161:162){
   #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 80
-  if (i < 50) {
+  if (i < 130) {
     tallyScores(gamedays[i])
     print(gamedays[i])
   } else {
     tallyScores(gamedays[i])
     print(gamedays[i])
-    playoffTeams <- eliminations$Team[which(eliminations$`Date Eliminated` == "Playoffs")]
+    playoffTeams <- eliminations$Team[which(eliminations$`Date Eliminated` == "Playoffs") & (numElim<15)]
     
     for (team in playoffTeams){
       
@@ -482,6 +500,7 @@ for (i in 1:length(gamedays)){
           print("update eliminations")
           print(gamedays[i])
           eliminations$`Date Eliminated`[which(eliminations$Team == team)] <- paste(month(gamedays[i]),day(gamedays[i]),year(gamedays[i]),sep="/")
+          numElim <- numElim + 1
         }
         simno <- simno + 1
         rm(simTeams)
@@ -493,4 +512,11 @@ for (i in 1:length(gamedays)){
     
   }
   
+}
+
+finalTeamsE <- checkPlayoffTeams(teams,"Miami Heat", "East","Southeast",gamedays[162])
+finalTeamsW <- checkPlayoffTeams(teams,"Utah Jazz","West","Northwest",gamedays[162])
+finalTeams <- c(finalTeamsE,finalTeamsW)
+for (team in finalTeams){
+  eliminations$`Date Eliminated`[which(eliminations$Team == team)] <- "Playoffs"
 }
