@@ -334,7 +334,7 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
       divArray <- c(divArray,stats$dwins/(stats$dwins+stats$dlosses))
     }
     listOfLists3 <- list(contentionTeams, divArray)
-    c3df <- data.frame(matrix(unlist(listOfLists3), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
+    c3df <- data.frame(lapply(data.frame(t(listOfLists3)),unlist),stringsAsFactors = FALSE)
     c3df %>% arrange(desc(X2)) -> c3df
     c3cutoff <- c3df[n,2]
     
@@ -354,10 +354,10 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
   confArray <- c()
   for(i in 1: length(contentionTeams)){
     statsConfs <- checkTeams %>% filter(Team_Name == contentionTeams[i])
-    confArray <- c(confArray,stats$cwins/(stats$cwins+stats$closses))
+    confArray <- c(confArray,statsConfs$cwins/(statsConfs$cwins+statsConfs$closses))
   }
   listOfLists4 <- list(contentionTeams, confArray)
-  c4df <- data.frame(matrix(unlist(listOfLists4), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
+  c4df <- data.frame(lapply(data.frame(t(listOfLists4)),unlist),stringsAsFactors = FALSE)
   c4df %>% arrange(desc(X2)) -> c4df
   c4cutoff <- c4df[n,2]
   
@@ -384,7 +384,7 @@ threePlusTeamLogic <- function(checkTeams, contentionTeams, currentDate, playoff
   c5array <- c(c5array,nrow((c6stats %>% filter(Winner == contentionTeams[i])))/nrow(c6stats))
   }
   listOfLists5 <- list(contentionTeams, c5array)
-  c5df <- data.frame(matrix(unlist(listOfLists5), nrow=nrow(contentionTeams),byrow=F),stringsAsFactors = FALSE)
+  c5df <- data.frame(lapply(data.frame(t(listOfLists5)),unlist),stringsAsFactors = FALSE)
   c5df %>% arrange(desc(X2)) -> c5df
   c5cutoff <- c5df[n,2]
   
@@ -418,8 +418,9 @@ for (i in 1:length(gamedays)){
       simno <- 1
       tempTeams <- teams
       
-      while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] == "Playoffs") & (simno < 1000)) {
-        print("sims starting")
+      print("sims starting")
+      while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] == "Playoffs") & (simno < 2)) {
+        
         
         simSeason <- generateBestCase(team, gamedays[i])
         
@@ -460,14 +461,14 @@ for (i in 1:length(gamedays)){
         teamconf <- teams$Conference_id[which(teams$Team_Name == team)]
         teamdiv <- teams$Division_id[which(teams$Team_Name == team)]
         pcheck <- checkPlayoffTeams(simTeams,team,teamconf,teamdiv,gamedays[i])
-        print(pcheck)
+        #print(pcheck)
         if (!team %in% pcheck) {
           eliminations$`Date Eliminated`[which(eliminations$Team == team)] <<- gamedays[i]
         }
         simno <- simno + 1
         rm(simTeams)
       }
-      
+      print("sims ended")
       rm(tempTeams)
       
     }
