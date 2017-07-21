@@ -92,7 +92,7 @@ divisions <- list("Atlantic" = as.vector(subset(teams$Team_Name,teams$Division_i
 # other games are decided by a coinflip
 
 #simulate best case scenario for a team
-generateBestCase <- function(teamName) {
+generateBestCase <- function(teamName, currentDay) {
   teamconf <- teams$Conference_id[which(teams$Team_Name == teamName)]
   teamdiv <- teams$Division_id[which(teams$Team_Name == teamName)]
   
@@ -401,23 +401,23 @@ threePlusTeamLogic <- function(teams, contentionTeams, currentDate, playoffTeams
 }
 
 #main loop
-for (day in gamedays){
+for (i in 150:151){
   #no need to simulate seasons after the first day, nobody could be eliminated yet skip to game day 60
-  if (day < gamedays[60]) {
-    tallyScores(day)
-    print(day)
+  if (i < 60) {
+    tallyScores(gamedays[i])
+    print(gamedays[i])
   } else {
-    tallyScores(day)
-    print(day)
+    tallyScores(gamedays[i])
+    print(gamedays[i])
     playoffTeams <- eliminations$Team[which(eliminations$`Date Eliminated` == "Playoffs")]
     
     for (team in playoffTeams){
       
-      print(team)
+      #print(team)
       simno <- 1
       while ((eliminations$`Date Eliminated`[which(eliminations$Team == team)] != "Playoffs") & (simno < 1000)) {
         print("sims starting")
-        simSeason <- generateBestCase(team)
+        simSeason <- generateBestCase(team, gamedays[i])
         teamconf <- teams$Conference_id[which(teams$Team_Name == teamName)]
         teamdiv <- teams$Division_id[which(teams$Team_Name == teamName)]
         pcheck <- checkPlayoffTeams(teams,team,teamconf,teamdiv,day)
